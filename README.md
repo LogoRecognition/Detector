@@ -1,123 +1,132 @@
-# Faster-RCNN_TF
+# Detector for Brand Logo Dataset
 
-This is an experimental Tensorflow implementation of Faster RCNN - a convnet for object detection with a region proposal network.
-For details about R-CNN please refer to the paper [Faster R-CNN: Towards Real-Time Object Detection with Region Proposal Networks](http://arxiv.org/pdf/1506.01497v3.pdf) by Shaoqing Ren, Kaiming He, Ross Girshick, Jian Sun.
+This is based on the implementation of Faster-RCNN(https://github.com/smallcorgi/Faster-RCNN_TF). In LogoReader application, we will take Faster-RCNN as detector to find out the logos in our logo dataset. In this part, we will provide an easy-to-use interface to take an image in and output the information about the logo in the image.
 
 
-### Requirements: software
+## Training and Testing
 
-1. Requirements for Tensorflow (see: [Tensorflow](https://www.tensorflow.org/))
+python ./tools/train_net.py --device gpu --device_id 0 --solver VGG_CNN_M_1024 --weight ./data/pretrain_model/VGG_imagenet.npy --imdb carlogo_27_train --network calogo27_train
 
-2. Python packages you might not have: `cython`, `python-opencv`, `easydict`
+python ./tools/train_net.py --device gpu --device_id 0 --solver VGG_CNN_M_1024 --weight ./data/pretrain_model/VGG_imagenet.npy --imdb carlogo_27_test --network calogo27_test
 
-### Requirements: hardware
+## Detector Interface
+### environment
+source ~/.bashrc
 
-1. For training the end-to-end version of Faster R-CNN with VGG16, 3G of GPU memory is sufficient (using CUDNN)
+source activate tensorflow
 
-### Installation (sufficient for the demo)
+### if something wrong with Display
+(tensorflow) root@LogoRecognitionVM:~/Faster-RCNN_TF# vncserver
 
-1. Clone the Faster R-CNN repository
-  ```Shell
-  # Make sure to clone with --recursive
-  git clone --recursive https://github.com/smallcorgi/Faster-RCNN_TF.git
-  ```
+New 'LogoRecognitionVM:4 (root)' desktop is LogoRecognitionVM:4
 
-2. Build the Cython modules
-    ```Shell
-    cd $FRCN_ROOT/lib
-    make
-    ```
+Starting applications specified in /root/.vnc/xstartup
+Log file is /root/.vnc/LogoRecognitionVM:4.log
 
-### Demo
+(tensorflow) root@LogoRecognitionVM:~/Faster-RCNN_TF# export DISPLAY=LogoRecognitionVM:4
 
-*After successfully completing [basic installation](#installation-sufficient-for-the-demo)*, you'll be ready to run the demo.
+(tensorflow) root@LogoRecognitionVM:~/Faster-RCNN_TF# xhost +
+### file structure
+define an extractor class，which provides a get_feature interface
 
-Download model training on PASCAL VOC 2007  [[Google Drive]](https://drive.google.com/open?id=0ByuDEGFYmWsbZ0EzeUlHcGFIVWM) [[Dropbox]](https://www.dropbox.com/s/cfz3blmtmwj6bdh/VGGnet_fast_rcnn_iter_70000.ckpt?dl=0)
 
-To run the demo
-```Shell
-cd $FRCN_ROOT
-python ./tools/demo.py --model model_path
-```
-The demo performs detection using a VGG16 network trained for detection on PASCAL VOC 2007.
+### how to use
+cd /home/workplace
 
-### Training Model
-1. Download the training, validation, test data and VOCdevkit
+python
 
-	```Shell
-	wget http://host.robots.ox.ac.uk/pascal/VOC/voc2007/VOCtrainval_06-Nov-2007.tar
-	wget http://host.robots.ox.ac.uk/pascal/VOC/voc2007/VOCtest_06-Nov-2007.tar
-	wget http://host.robots.ox.ac.uk/pascal/VOC/voc2007/VOCdevkit_08-Jun-2007.tar
-	```
+from Faster\_RCNN\_TF.tools.extract_features import extractor
+e = extractor()
 
-2. Extract all of these tars into one directory named `VOCdevkit`
+e.get_feature(图片名字)
 
-	```Shell
-	tar xvf VOCtrainval_06-Nov-2007.tar
-	tar xvf VOCtest_06-Nov-2007.tar
-	tar xvf VOCdevkit_08-Jun-2007.tar
-	```
+### input
 
-3. It should have this basic structure
+images are saved in
+./Detector/data/demo/
 
-	```Shell
-  	$VOCdevkit/                           # development kit
-  	$VOCdevkit/VOCcode/                   # VOC utility code
-  	$VOCdevkit/VOC2007                    # image sets, annotations, etc.
-  	# ... and several other directories ...
-  	```
+e.g. ./Detector/data/demo/0075.jpg
+the input format should be '0075.jpg'
 
-4. Create symlinks for the PASCAL VOC dataset
+### output
+output images will be saved in
+./detect/
 
-	```Shell
-    cd $FRCN_ROOT/data
-    ln -s $VOCdevkit VOCdevkit2007
-    ```
-    
-5. Download pre-trained ImageNet models
+### if there is nothing detected 
+when you input '0075.jpg', if there is a logo, there will be an output image in ./detect/0075.jpg, otherwise not.
 
-   Download the pre-trained ImageNet models [[Google Drive]](https://drive.google.com/open?id=0ByuDEGFYmWsbNVF5eExySUtMZmM) [[Dropbox]](https://www.dropbox.com/s/po2kzdhdgl4ix55/VGG_imagenet.npy?dl=0)
-   
-   	```Shell
-    mv VGG_imagenet.npy $FRCN_ROOT/data/pretrain_model/VGG_imagenet.npy
-    ```
+## Brand Logo Dataset
+we collect 27 brand classes images, up to 4360.
+30% of each brand's images are taken as test set.
+Brand coverage: Car, Sports, Drinks, Techs, Fast Food, E-commerce
 
-6. Run script to train and test model
-	```Shell
-	cd $FRCN_ROOT
-	./experiments/scripts/faster_rcnn_end2end.sh $DEVICE $DEVICE_ID VGG16 pascal_voc
-	```
-  DEVICE is either cpu/gpu
+| Classes | total | train | test |
+|---------|-------|-------|------|
+|Acura|260|78|182|
+|Alpha-Romeo|234|71|163|
+|Aston-Martin|280|84|196|
+|Audi|229|69|160|
+|Bentley|302|91|211|
+|Benz|301|90|211|
+|BMW|276|83|193|
+|Bugatti|200|60|140|
+|Buick|273|82|191|
+|Nike|192|58|134|
+|Adidas|230|69|161|
+|Vans|263|79|184|
+|Converse|222|67|155|
+|Puma|302|91|211|
+|New Balance|195|59|136|
+|Anta|208|63|145|
+|Lining|204|62|142|
+|Pessi|205|62|143|
+|Yili|203|62|141|
+|Uniqlo|200|61|139|
+|Coca|202|61|141|
+|Haier|195|59|136|
+|Huawei|220|66|154|
+|Apple|224|68|156|
+|Lenovo|200|60|140|
+|McDonalds|215|65|150|
+|Amazon|210|63|147|
 
-### The result of testing on PASCAL VOC 2007 
+
+
+### The result of testing on Brand Logo Dataset
 
 | Classes       | AP     |
 |-------------|--------|
-| aeroplane   | 0.698 |
-| bicycle     | 0.788 |
-| bird        | 0.657 |
-| boat        | 0.565 |
-| bottle      | 0.478 |
-| bus         | 0.762 |
-| car         | 0.797 |
-| cat         | 0.793 |
-| chair       | 0.479 |
-| cow         | 0.724 |
-| diningtable | 0.648 |
-| dog         | 0.803 |
-| horse       | 0.797 |
-| motorbike   | 0.732 |
-| person      | 0.770 |
-| pottedplant | 0.384 |
-| sheep       | 0.664 |
-| sofa        | 0.650 |
-| train       | 0.766 |
-| tvmonitor   | 0.666 |
-| mAP        | 0.681 |
+|'__background__'|0.811|
+|Acura|0.961|
+|Alpha-Romeo|0.993|
+|Aston-Martin|0.696|
+|Audi|0.902|
+|Bentley|0.856|
+|Benz|0.899|
+|BMW|0.828|
+|Bugatti|0.715|
+|Buick|0.604|
+|Nike|0.784|
+|Adidas|0.604
+|Vans|0.663|
+|Converse|0.51|
+|Puma|0.591|
+|New Balance|0.545|
+|Anta|0.331|
+|Lining|0.688|
+|Pessi|0.68|
+|Yili|0.731|
+|Uniqlo|0.443|
+|Coca|0.982|
+|Haier|0.897|
+|Huawei|0.566|
+|Apple|0.977|
+|Lenovo|0.93|
+|McDonalds|0.977|
+|Amazon|0.747|
+| mAP        | 0.747|
 
 
 ###References
-[Faster R-CNN caffe version](https://github.com/rbgirshick/py-faster-rcnn)
-
-[A tensorflow implementation of SubCNN (working progress)](https://github.com/yuxng/SubCNN_TF)
+[Faster R-CNN TensorFlow version](https://github.com/smallcorgi/Faster-RCNN_TF)
 
