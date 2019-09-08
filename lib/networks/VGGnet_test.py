@@ -1,7 +1,8 @@
 import tensorflow as tf
 from networks.network import Network
 
-n_classes = 21
+n_classes = 28
+#n_classes = 4
 _feat_stride = [16,]
 anchor_scales = [8, 16, 32] 
 
